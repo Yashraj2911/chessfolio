@@ -15,6 +15,8 @@ export default function ChessField() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const dotsRef = useRef<Dot[]>([]);
   const mouseRef = useRef({ x: -9999, y: -9999 });
+  const rafRef = useRef<number | null>(null);
+  const isVisibleRef = useRef(true);
 
   useEffect(() => {
     if ("ontouchstart" in window || navigator.maxTouchPoints > 0) {
@@ -80,6 +82,10 @@ export default function ChessField() {
     const ease = 0.08;
 
     const animate = () => {
+      if (!isVisibleRef.current) {
+        rafRef.current = null;
+        return;
+      }
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       const { x: mx, y: my } = mouseRef.current;
@@ -108,19 +114,47 @@ export default function ChessField() {
 
         ctx.beginPath();
         ctx.arc(dot.x, dot.y, 2, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(255,255,255,0.07)";
+        ctx.fillStyle = "rgba(255,255,255,0.3)";
         ctx.fill();
       });
 
-      requestAnimationFrame(animate);
+      rafRef.current = requestAnimationFrame(animate);
     };
 
-    animate();
+    const parent = canvas.parentElement;
+    let observer: IntersectionObserver | null = null;
+    if (parent && "IntersectionObserver" in window) {
+      observer = new IntersectionObserver(
+        (entries) => {
+          const entry = entries[0];
+          isVisibleRef.current = Boolean(entry?.isIntersecting);
+          if (isVisibleRef.current && !rafRef.current) {
+            rafRef.current = requestAnimationFrame(animate);
+          }
+          if (!isVisibleRef.current && rafRef.current) {
+            cancelAnimationFrame(rafRef.current);
+            rafRef.current = null;
+          }
+        },
+        { threshold: 0.05 }
+      );
+      observer.observe(parent);
+    }
+
+    if (isVisibleRef.current) {
+      rafRef.current = requestAnimationFrame(animate);
+    }
 
     return () => {
       window.removeEventListener("resize", resize);
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseleave", handleMouseLeave);
+      if (observer) {
+        observer.disconnect();
+      }
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
     };
   }, []);
 
