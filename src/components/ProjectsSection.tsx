@@ -30,6 +30,18 @@ type SupportingProject = {
 
 const featuredProjects: FeaturedProject[] = [
   {
+    title: "Incentra",
+    description:
+      "Multi-tenant SaaS platform for government incentive consulting spanning the full client lifecycle from lead generation through claims processing and certification.",
+    highlights: [
+      "Multi-tenant architecture",
+      "15-role RBAC system",
+      "Claims processing engine",
+      "Workflow automation",
+    ],
+    tech: ["Next.js", "React", "TypeScript", "Supabase"],
+  },
+  {
     title: "Yamuna Bhandar",
     description:
       "Production e-commerce platform built with React and modern deployment practices.",
@@ -321,22 +333,9 @@ export default function ProjectsSection() {
           whileInView="visible"
           viewport={{ amount: 0.2, once: true }}
         >
-          <FeaturedCard project={featuredProjects[0]} />
-          <FeaturedCard project={featuredProjects[1]} />
-        </motion.div>
-
-        {/* CS2 Veto — centered second row */}
-        <motion.div
-          className="mt-8 flex justify-center lg:mt-12"
-          variants={itemVariants}
-          initial={prefersReducedMotion ? "visible" : "hidden"}
-          whileInView="visible"
-          viewport={{ amount: 0.2, once: true }}
-          transition={prefersReducedMotion ? { duration: 0 } : transition}
-        >
-          <div className="w-full max-w-xl lg:max-w-2xl">
-            <FeaturedCard project={featuredProjects[2]} />
-          </div>
+          {featuredProjects.map((project) => (
+            <FeaturedCard key={project.title} project={project} />
+          ))}
         </motion.div>
 
         {/* Supporting — 2-col grid, equal height cards */}
